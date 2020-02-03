@@ -48,6 +48,7 @@ class Technique;
 class Texture;
 class Texture2D;
 class Viewport;
+class ViewRenderer;
 class Zone;
 struct RenderPathCommand;
 struct WorkItem;
@@ -321,6 +322,8 @@ private:
     WeakPtr<Graphics> graphics_;
     /// Renderer subsystem.
     WeakPtr<Renderer> renderer_;
+    /// View renderer implementation.
+    ea::unique_ptr<ViewRenderer> impl_;
     /// Scene to use.
     Scene* scene_{};
     /// Octree to use.

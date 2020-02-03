@@ -48,6 +48,7 @@
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/View.h"
+#include "../Graphics/ViewRenderer.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
@@ -310,7 +311,8 @@ StringHash ParseTextureTypeXml(ResourceCache* cache, const ea::string& filename)
 View::View(Context* context) :
     Object(context),
     graphics_(GetSubsystem<Graphics>()),
-    renderer_(GetSubsystem<Renderer>())
+    renderer_(GetSubsystem<Renderer>()),
+    impl_(ea::make_unique<ViewRenderer>())
 {
     // Create octree query and scene results vector for each thread
     unsigned numThreads = GetSubsystem<WorkQueue>()->GetNumThreads() + 1; // Worker threads + main thread
@@ -578,6 +580,8 @@ void View::Update(const FrameInfo& frame)
     vertexLightQueues_.clear();
     for (auto i = batchQueues_.begin(); i != batchQueues_.end(); ++i)
         i->second.Clear(maxSortedInstances);
+
+    impl_->Update(frame_, octree_);
 
     if (hasScenePasses_ && (!cullCamera_ || !octree_))
     {
@@ -1623,7 +1627,8 @@ void View::ExecuteRenderPathCommands()
                             passCommand_ = &command;
                         }
 
-                        queue.Draw(this, camera_, command.markToStencil_, false, allowDepthWrite);
+                        impl_->RenderScenePass(this);
+                        //queue.Draw(this, camera_, command.markToStencil_, false, allowDepthWrite);
 
                         passCommand_ = nullptr;
                     }
